@@ -26,6 +26,17 @@ Python による自動化スクリプト置き場。
 - 存在しないホストで接続エラー時の終了、robots.txt の禁止判定もテストで確認
 - `.gitignore` に `logs/` を追加
 
+### 2026-10-17（4）
+- `playwright` を `.venv` にインストールし、`python -m playwright install chromium` でブラウザを導入。`requirements.txt` を更新
+- `scrape_quotes.py` を追加（quotes.toscrape.com/js の名言テキスト・著者名を取得）
+  - JavaScript で描画されるページなので、Playwright で実ブラウザを開いて取得する。ブラウザは画面に表示して実行（`headless=False`）
+  - 結果は `output/quotes_YYYYMMDD.md` に Markdown の表で、1ページ目のスクリーンショットを `output/quotes_YYYYMMDD.png` に保存
+  - robots.txt を読み込み、禁止パスにはアクセスしない（今は robots.txt が 404 なので全パス許可として扱う）
+  - リクエストの間に 1〜3 秒のランダムな待機を入れる
+  - 接続エラー・タイムアウト・HTTPエラーは `logs/scrape_quotes.log` に出力して終了（終了コード 1）
+- 全 10 ページを実行し、100 件（著者 50 人）を `output/quotes_20261017.md` に保存（所要時間 約20秒）
+- 存在しないホストで接続エラー時の終了、robots.txt の禁止判定もテストで確認
+
 ## 仮想環境の使い方
 ```powershell
 # 有効化（PowerShell）
@@ -33,18 +44,26 @@ Python による自動化スクリプト置き場。
 # 無効化
 deactivate
 ```
-- 新しいPCでクローンした場合は `py -m venv .venv` で作り直し、`pip install -r requirements.txt` でライブラリを入れる
+- 新しいPCでクローンした場合は `py -m venv .venv` で作り直し、`pip install -r requirements.txt` でライブラリを入れ、`python -m playwright install chromium` でブラウザを入れる
 
 ## スクリプト一覧
 | ファイル | 内容 |
 |---|---|
 | `scrape_books.py` | books.toscrape.com の書籍タイトル・価格・在庫状況を Markdown に保存 |
+| `scrape_quotes.py` | quotes.toscrape.com/js の名言・著者名を Playwright で取得し、Markdown とスクリーンショットを保存 |
 
 ### scrape_books.py の使い方
 ```powershell
 .venv\Scripts\Activate.ps1
 python scrape_books.py               # 全ページ（約2分）
 python scrape_books.py --max-pages 3 # 先頭3ページだけ
+```
+
+### scrape_quotes.py の使い方
+```powershell
+.venv\Scripts\Activate.ps1
+python scrape_quotes.py               # 全ページ（約20秒、ブラウザが画面に開く）
+python scrape_quotes.py --max-pages 2 # 先頭2ページだけ
 ```
 
 ## 運用ルール
